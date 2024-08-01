@@ -14,8 +14,8 @@ This repository is organized into directories, each containing setup instruction
 - **[Chroma](chroma/)**: Instructions for ChromaDB, a vector database designed for AI and machine learning applications.
 - **[Qdrant](qdrant/)**: Setup guide for Qdrant, an open-source vector similarity search engine.
 - **[Pinecone](pinecone/)**: Instructions for Pinecone, a fully managed vector database service.
-- **[Redis Vector Search](redis_vector_search/)**: Guide for using Redis with vector search capabilities.
-- **[Elasticsearch](elasticsearch/)**: Setup instructions for Elasticsearch, a search engine with vector search capabilities.
+- **[Redis Vector Search](Redis/)**: Guide for using Redis with vector search capabilities.
+- **[Elasticsearch](Elastic_Search/)**: Setup instructions for Elasticsearch, a search engine with vector search capabilities.
 
 
 ## Getting Started
