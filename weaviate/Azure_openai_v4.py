@@ -1,6 +1,5 @@
 import weaviate
 from weaviate.classes.config import Configure
-import openai
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
@@ -116,9 +115,8 @@ def close_client():
 
 # Example Usage (not included in the function definitions)
 if __name__ == "__main__":
-    # Set OpenAI API key
-    openai.api_key = 'your-azure-openai-api-key'
-
+    # Set azure OpenAI API key in docker compose file
+    
     # Define parameters
     class_name = "DemoClass"
     resource_name = ""  # Replace with your Azure OpenAI resource name
