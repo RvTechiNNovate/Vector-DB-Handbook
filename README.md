@@ -34,4 +34,4 @@ Comming soon..
 
 ## Contact
 
-For any questions or support, please contact [your_email@example.com](mailto:vritesh066@gmail.com).
+For any questions or support, please contact [vritesh066l@gmail.com](mailto:vritesh066@gmail.com).
