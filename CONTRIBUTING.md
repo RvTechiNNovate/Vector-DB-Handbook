@@ -25,7 +25,7 @@ To contribute code or updates, please follow these steps:
 1. **Fork the Repository**: Click the "Fork" button at the top right of the repository page to create a personal copy of the repository.
 2. **Clone Your Fork**: Clone your fork to your local machine using:
    ```bash
-   git clone https://github.com/your-username/your-repository.git
+   git clone https://github.com/RvTechiNNovate/Vector-DB-Handbook
    ```
 3. **Create a Branch**: Create a new branch for your changes:
    ```bash
