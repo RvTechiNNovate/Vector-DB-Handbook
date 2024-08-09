@@ -122,7 +122,7 @@ results = vector_store.similarity_search(
 )
 ```
 
-- **API Keys**: Secure your API keys if using a hosted version.
+- **API Keys**: Secure your API keys if using a hosted version like OPENAI embeddings
 - **Data Privacy**: Handle sensitive data with care and in compliance with regulations.
 - **Efficiency**: Use vector normalization and ensure consistent dimensions for better performance.
 
