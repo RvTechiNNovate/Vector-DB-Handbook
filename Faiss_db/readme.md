@@ -1,173 +1,181 @@
-FAISS (Facebook AI Similarity Search) is a library developed by Facebook AI Research for efficient similarity search and clustering of dense vectors. It’s particularly well-suited for large-scale search applications where you need to handle high-dimensional vector data. Here’s a detailed guide on setting up and using FAISS:
+# FAISS Overview and Setup
 
-### **1. Installation**
+**FAISS (Facebook AI Similarity Search)** is a library for efficient similarity search and clustering of dense vectors. It contains algorithms that search in sets of vectors of any size, up to ones that possibly do not fit in RAM. Additionally, it includes supporting code for evaluation and parameter tuning.
 
-To get started with FAISS, you need to install the library. You can install it via pip:
+## Setup
+
+To use the FAISS vector database with LangChain, you need to install the following packages:
 
 ```bash
-pip install faiss-cpu  # For CPU version
-pip install faiss-gpu  # For GPU version (if you have a compatible GPU)
+pip install -U langchain-community faiss-cpu langchain-openai tiktoken
 ```
 
-### **2. Basic Usage**
+You can also install `faiss-gpu` if you want to use the GPU-enabled version.
 
-Here’s a basic overview of how to use FAISS for indexing and searching vectors:
+### Setting Up OpenAI API Key
 
-#### **a. Import FAISS and Create an Index**
+Since we're using OpenAI for embeddings, you'll need an OpenAI API Key:
 
 ```python
-import faiss
-import numpy as np
+import getpass
+import os
 
-# Define the dimension of the vectors
-d = 128  # Example dimension
-
-# Create a FAISS index
-index = faiss.IndexFlatL2(d)  # L2 distance (Euclidean distance)
+os.environ["OPENAI_API_KEY"] = getpass.getpass()
 ```
 
-#### **b. Adding Vectors to the Index**
+## Document Ingestion
+
+### Import Necessary Libraries
 
 ```python
-# Generate some random vectors
-num_vectors = 1000
-vectors = np.random.random((num_vectors, d)).astype('float32')
-
-# Add vectors to the index
-index.add(vectors)
+from langchain_community.document_loaders import TextLoader
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import CharacterTextSplitter
 ```
 
-#### **c. Performing a Search**
+### Load and Split Documents
 
 ```python
-# Create a query vector
-query_vector = np.random.random((1, d)).astype('float32')
-
-# Perform a search (find the 5 nearest neighbors)
-k = 5
-distances, indices = index.search(query_vector, k)
-
-# Print the results
-print("Distances:", distances)
-print("Indices:", indices)
+loader = TextLoader("../../modules/state_of_the_union.txt")
+documents = loader.load()
+text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+docs = text_splitter.split_documents(documents)
 ```
 
-### **3. Advanced Indexing**
-
-FAISS supports several advanced indexing techniques to improve performance and scalability.
-
-#### **a. Indexing with HNSW (Hierarchical Navigable Small World)**
-
-HNSW is a popular method for approximate nearest neighbor search:
+### Generate Embeddings and Initialize FAISS
 
 ```python
-# Create an HNSW index
-index_hnsw = faiss.IndexHNSWFlat(d, 32)  # 32 is the number of neighbors for HNSW
-
-# Add vectors to the index
-index_hnsw.add(vectors)
-
-# Perform a search
-distances, indices = index_hnsw.search(query_vector, k)
-
-print("Distances:", distances)
-print("Indices:", indices)
+embeddings = OpenAIEmbeddings()
+db = FAISS.from_documents(docs, embeddings)
+print(db.index.ntotal)
 ```
 
-#### **b. Using IVF (Inverted File Index)**
+## Querying the Vectorstore
 
-IVF is useful for large-scale data:
+### Similarity Search
 
 ```python
-# Create an IVF index
-nlist = 100  # Number of clusters
-quantizer = faiss.IndexFlatL2(d)  # Quantizer for IVF
-index_ivf = faiss.IndexIVFFlat(quantizer, d, nlist)
-
-# Train the index (required before adding vectors)
-index_ivf.train(vectors)
-
-# Add vectors to the index
-index_ivf.add(vectors)
-
-# Perform a search
-distances, indices = index_ivf.search(query_vector, k)
-
-print("Distances:", distances)
-print("Indices:", indices)
+query = "What did the president say about Ketanji Brown Jackson"
+docs = db.similarity_search(query)
+print(docs[0].page_content)
 ```
 
-### **4. GPU Acceleration**
-
-If you have a GPU and want to use it for FAISS, you can leverage GPU capabilities:
-
-#### **a. GPU Setup**
+### Using FAISS as a Retriever
 
 ```python
-import faiss
-import faiss.contrib.torch_utils
-
-# Create a FAISS index
-index_cpu = faiss.IndexFlatL2(d)
-
-# Move the index to GPU
-res = faiss.StandardGpuResources()  # Initialize GPU resources
-index_gpu = faiss.index_cpu_to_gpu(res, 0, index_cpu)  # Move index to GPU
-
-# Add vectors and search as usual
-index_gpu.add(vectors)
-distances, indices = index_gpu.search(query_vector, k)
-
-print("Distances:", distances)
-print("Indices:", indices)
+retriever = db.as_retriever()
+docs = retriever.invoke(query)
+print(docs[0].page_content)
 ```
 
-### **5. Saving and Loading Indexes**
+### Similarity Search with Score
 
-You can save and load FAISS indexes for persistence:
-
-#### **a. Save an Index**
+FAISS also provides the `similarity_search_with_score` method, which returns the documents along with their similarity scores:
 
 ```python
-faiss.write_index(index, 'index_file.index')
+docs_and_scores = db.similarity_search_with_score(query)
+print(docs_and_scores[0])
 ```
 
-#### **b. Load an Index**
+### Search by Embedding Vector
 
 ```python
-index = faiss.read_index('index_file.index')
+embedding_vector = embeddings.embed_query(query)
+docs_and_scores = db.similarity_search_by_vector(embedding_vector)
 ```
 
-### **6. Example: Full Workflow**
+## Saving and Loading the FAISS Index
 
-Here’s a complete example that covers the creation of an index, adding data, and querying:
+You can save and load a FAISS index, which is useful for not having to recreate it every time.
+
+### Save the Index
 
 ```python
-import faiss
-import numpy as np
-
-# Define dimensions and create an index
-d = 128
-index = faiss.IndexFlatL2(d)
-
-# Generate and add random vectors
-num_vectors = 1000
-vectors = np.random.random((num_vectors, d)).astype('float32')
-index.add(vectors)
-
-# Create a query vector and search
-query_vector = np.random.random((1, d)).astype('float32')
-k = 5
-distances, indices = index.search(query_vector, k)
-
-# Print results
-print("Distances:", distances)
-print("Indices:", indices)
+db.save_local("faiss_index")
 ```
 
-### **7. Resources**
+### Load the Index
 
-- **FAISS Documentation**: [FAISS Documentation](https://faiss.ai/docs/)
-- **FAISS GitHub**: [FAISS GitHub Repository](https://github.com/facebookresearch/faiss)
+```python
+new_db = FAISS.load_local("faiss_index", embeddings)
+docs = new_db.similarity_search(query)
+print(docs[0])
+```
 
-FAISS is a powerful tool for similarity search and can be tailored to fit a wide range of use cases, from small-scale projects to large-scale deployments. If you have specific requirements or need further assistance, feel free to ask!
+## Serializing and De-Serializing to Bytes
+
+You can pickle the FAISS Index by using the following functions:
+
+```python
+from langchain_community.embeddings.huggingface import HuggingFaceEmbeddings
+
+pkl = db.serialize_to_bytes()  # Serializes the FAISS index
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+db = FAISS.deserialize_from_bytes(embeddings=embeddings, serialized=pkl)  # Load the index
+```
+
+## Merging FAISS Vectorstores
+
+You can merge two FAISS vectorstores:
+
+```python
+db1 = FAISS.from_texts(["foo"], embeddings)
+db2 = FAISS.from_texts(["bar"], embeddings)
+
+db1.merge_from(db2)
+```
+
+## Similarity Search with Filtering
+
+FAISS vectorstore supports filtering by fetching more results than needed and then filtering them. Here’s an example:
+
+```python
+from langchain_core.documents import Document
+
+list_of_documents = [
+    Document(page_content="foo", metadata=dict(page=1)),
+    Document(page_content="bar", metadata=dict(page=1)),
+    Document(page_content="foo", metadata=dict(page=2)),
+    Document(page_content="barbar", metadata=dict(page=2)),
+    Document(page_content="foo", metadata=dict(page=3)),
+    Document(page_content="bar burr", metadata=dict(page=3)),
+    Document(page_content="foo", metadata=dict(page=4)),
+    Document(page_content="bar bruh", metadata=dict(page=4)),
+]
+db = FAISS.from_documents(list_of_documents, embeddings)
+results_with_scores = db.similarity_search_with_score("foo")
+for doc, score in results_with_scores:
+    print(f"Content: {doc.page_content}, Metadata: {doc.metadata}, Score: {score}")
+```
+
+### Filtering Results
+
+You can filter results based on metadata:
+
+```python
+results_with_scores = db.similarity_search_with_score("foo", filter=dict(page=1))
+for doc, score in results_with_scores:
+    print(f"Content: {doc.page_content}, Metadata: {doc.metadata}, Score: {score}")
+```
+
+### Filtering with MMR
+
+```python
+results = db.max_marginal_relevance_search("foo", filter=dict(page=1))
+for doc in results:
+    print(f"Content: {doc.page_content}, Metadata: {doc.metadata}")
+```
+
+## Deleting Records from Vectorstore
+
+You can delete records from the vectorstore:
+
+```python
+print("count before:", db.index.ntotal)
+db.delete([db.index_to_docstore_id[0]])
+print("count after:", db.index.ntotal)
+```
+
+This markdown provides a comprehensive guide on setting up and using FAISS with LangChain, including querying, filtering, saving/loading, and managing your FAISS vectorstore.
