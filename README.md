@@ -8,12 +8,12 @@ This repository is organized into directories, each containing setup instruction
 
 ## Directory Structure
 
-- **[Milvus](milvus/)**: Instructions for setting up and using Milvus, an open-source vector database.
-- **[FAISS](faiss/)**: Setup guide for FAISS, a library for efficient similarity search.
+- **[Milvus](Milvus/)**: Instructions for setting up and using Milvus, an open-source vector database.
+- **[FAISS](Faiss_db/)**: Setup guide for FAISS, a library for efficient similarity search.
 - **[Weaviate](weaviate/)**: Setup instructions for Weaviate, an open-source vector search engine.
-- **[Chroma](chroma/)**: Instructions for ChromaDB, a vector database designed for AI and machine learning applications.
-- **[Qdrant](qdrant/)**: Setup guide for Qdrant, an open-source vector similarity search engine.
-- **[Pinecone](pinecone/)**: Instructions for Pinecone, a fully managed vector database service.
+- **[Chroma](Chromadb/)**: Instructions for ChromaDB, a vector database designed for AI and machine learning applications.
+- **[Qdrant](Qdrant/)**: Setup guide for Qdrant, an open-source vector similarity search engine.
+- **[Pinecone](Pinecone/)**: Instructions for Pinecone, a fully managed vector database service.
 - **[Redis Vector Search](Redis/)**: Guide for using Redis with vector search capabilities.
 - **[Elasticsearch](Elastic_Search/)**: Setup instructions for Elasticsearch, a search engine with vector search capabilities.
 
@@ -27,10 +27,6 @@ This repository is organized into directories, each containing setup instruction
 ## Contributing
 
 Contributions are welcome! If you have additional setups, improvements, or corrections, please follow the guidelines in the [CONTRIBUTING.md](CONTRIBUTING.md) file.
-
-## License
-
-Comming soon..
 
 ## Contact
 
