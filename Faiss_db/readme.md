@@ -177,5 +177,3 @@ print("count before:", db.index.ntotal)
 db.delete([db.index_to_docstore_id[0]])
 print("count after:", db.index.ntotal)
 ```
-
-This markdown provides a comprehensive guide on setting up and using FAISS with LangChain, including querying, filtering, saving/loading, and managing your FAISS vectorstore.
