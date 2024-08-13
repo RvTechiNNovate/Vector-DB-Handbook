@@ -1,201 +1,253 @@
-Qdrant is a modern, open-source vector search engine designed to handle similarity search and nearest neighbor search in high-dimensional vector spaces. It's optimized for efficiency and scalability and is particularly useful for applications involving AI and machine learning.
+Here's a detailed `README.md` file for your Qdrant setup and usage, including setup instructions, CRUD operations, and search functionalities:
 
-Here’s a comprehensive guide on setting up and using Qdrant, along with its features:
+```markdown
+# Qdrant Vector Store Setup and Usage
 
-### **1. Features of Qdrant**
+## Overview
 
-- **High-Performance Search**: Efficient similarity search with support for high-dimensional vectors.
-- **Scalability**: Supports large-scale data and distributed deployments.
-- **Flexibility**: Provides various indexing options and configurations.
-- **Real-Time Updates**: Supports real-time indexing and searching.
-- **Advanced Filtering**: Allows complex filtering and querying of vector data.
-- **Integration**: Easily integrates with machine learning frameworks and other data sources.
-- **REST and gRPC APIs**: Offers APIs for easy integration and interaction.
+Qdrant is a high-performance vector search engine that allows you to perform similarity searches on large sets of vector embeddings. This guide provides instructions on how to set up Qdrant using various methods, perform CRUD operations, and execute different types of searches.
 
-### **2. Installation**
+## Table of Contents
 
-#### **a. Using Docker**
+1. [Setup](#setup)
+   - [Docker Setup](#docker-setup)
+   - [Local In-Memory Setup](#local-in-memory-setup)
+   - [Qdrant Cloud Setup](#qdrant-cloud-setup)
+   - [On-Disk Storage](#on-disk-storage)
+2. [CRUD Operations](#crud-operations)
+   - [Add Documents](#add-documents)
+   - [Delete Documents](#delete-documents)
+3. [Search Types](#search-types)
+   - [Dense Vector Search](#dense-vector-search)
+   - [Sparse Vector Search](#sparse-vector-search)
+   - [Hybrid Vector Search](#hybrid-vector-search)
+   - [Metadata Filtering](#metadata-filtering)
+   - [Search with Scores](#search-with-scores)
+4. [Additional Resources](#additional-resources)
 
-The easiest way to deploy Qdrant is using Docker. Here’s how to set it up:
+## Setup
 
-1. **Install Docker**: Ensure Docker is installed on your machine.
+### Docker Setup
 
-2. **Run Qdrant Using Docker**:
+To set up Qdrant using Docker:
 
-   ```bash
+1. **Pull the Qdrant Docker image:**
+
+   ```sh
+   docker pull qdrant/qdrant
+   ```
+
+2. **Run the Qdrant Docker container:**
+
+   ```sh
    docker run -p 6333:6333 qdrant/qdrant
    ```
 
-   This command starts Qdrant and exposes it on port 6333.
+   This will start Qdrant on `http://localhost:6333`.
 
-#### **b. Using Pre-built Binaries**
+### Local In-Memory Setup
 
-You can also download and run Qdrant directly from pre-built binaries.
+To set up Qdrant using an in-memory client:
 
-1. **Download Qdrant**: Get the latest release from [Qdrant GitHub Releases](https://github.com/qdrant/qdrant/releases).
+```python
+from qdrant_client import QdrantClient
 
-2. **Run Qdrant**:
+client = QdrantClient(":memory:")
+```
 
-   ```bash
-   ./qdrant --port 6333
-   ```
+### Qdrant Cloud Setup
 
-   Ensure the executable has the appropriate permissions.
+To use Qdrant Cloud:
 
-#### **c. Building from Source**
+1. **Obtain your Qdrant Cloud URL and API key from the Qdrant Cloud dashboard.**
 
-For advanced use cases or custom builds:
-
-1. **Clone the Repository**:
-
-   ```bash
-   git clone https://github.com/qdrant/qdrant.git
-   cd qdrant
-   ```
-
-2. **Build Qdrant**:
-
-   Follow the instructions in the repository’s `README.md` to build from source.
-
-### **3. Basic Usage**
-
-#### **a. Connecting to Qdrant**
-
-You can use the Qdrant Python client to interact with the server:
-
-1. **Install the Qdrant Client**:
-
-   ```bash
-   pip install qdrant-client
-   ```
-
-2. **Connect to Qdrant**:
+2. **Initialize Qdrant with your cloud URL and API key:**
 
    ```python
-   from qdrant_client import QdrantClient
+   from langchain_qdrant import QdrantVectorStore
 
-   # Initialize Qdrant client
-   client = QdrantClient(host='localhost', port=6333)
+   url = "<---qdrant cloud cluster url here --->"
+   api_key = "<---api key here--->"
+
+   vector_store = QdrantVectorStore.from_documents(
+       docs,
+       embedding=embeddings,
+       url=url,
+       prefer_grpc=True,
+       api_key=api_key,
+       collection_name="my_documents"
+   )
    ```
 
-#### **b. Creating a Collection**
+### On-Disk Storage
 
-Define a schema and create a collection:
-
-```python
-from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams
-
-# Initialize Qdrant client
-client = QdrantClient(host='localhost', port=6333)
-
-# Define collection parameters
-collection_name = "example_collection"
-vector_params = VectorParams(size=128, distance="Cosine")  # Vector dimension and distance metric
-
-# Create a collection
-client.create_collection(collection_name=collection_name, vector_params=vector_params)
-```
-
-#### **c. Inserting Data**
-
-Add vectors to the collection:
-
-```python
-import numpy as np
-
-# Generate sample data
-num_vectors = 1000
-vectors = np.random.random((num_vectors, 128)).tolist()  # Convert to list of lists
-ids = list(range(num_vectors))
-
-# Insert data
-client.upsert(collection_name=collection_name, points=[(id, vector) for id, vector in zip(ids, vectors)])
-```
-
-#### **d. Searching Data**
-
-Perform a similarity search:
-
-```python
-# Create a query vector
-query_vector = np.random.random((1, 128)).tolist()
-
-# Search for the top 5 most similar vectors
-results = client.search(collection_name=collection_name, query_vector=query_vector, top=5)
-
-# Print results
-for result in results:
-    print(result.id, result.score)
-```
-
-### **4. Advanced Features**
-
-#### **a. Indexing**
-
-Qdrant uses efficient indexing methods to improve search performance. You can configure indexing options when creating the collection.
-
-#### **b. Filtering**
-
-Apply filters during queries to narrow down search results based on additional criteria:
-
-```python
-# Apply a filter (e.g., filter based on metadata)
-filter = {"field_name": "value"}
-
-# Perform a search with filter
-results = client.search(collection_name=collection_name, query_vector=query_vector, top=5, filter=filter)
-```
-
-#### **c. Real-Time Updates**
-
-Qdrant supports real-time updates, allowing you to add or delete vectors on the fly without downtime.
-
-```python
-# Upsert new data
-client.upsert(collection_name=collection_name, points=[(id, vector)])
-```
-
-#### **d. Metadata Storage**
-
-Store additional metadata associated with vectors, which can be useful for filtering and querying.
-
-### **5. Example: Full Workflow**
-
-Here’s a complete example of setting up and using Qdrant:
+To set up Qdrant with on-disk storage:
 
 ```python
 from qdrant_client import QdrantClient
-from qdrant_client.models import VectorParams
-import numpy as np
+from langchain_qdrant import QdrantVectorStore
 
-# Initialize Qdrant client
-client = QdrantClient(host='localhost', port=6333)
+client = QdrantClient(path="/tmp/langchain_qdrant")
 
-# Create a collection
-collection_name = "example_collection"
-vector_params = VectorParams(size=128, distance="Cosine")
-client.create_collection(collection_name=collection_name, vector_params=vector_params)
+client.create_collection(
+    collection_name="demo_collection",
+    vectors_config={"size": 3072, "distance": "Cosine"}
+)
 
-# Generate and insert data
-num_vectors = 1000
-vectors = np.random.random((num_vectors, 128)).tolist()
-ids = list(range(num_vectors))
-client.upsert(collection_name=collection_name, points=[(id, vector) for id, vector in zip(ids, vectors)])
-
-# Perform a search
-query_vector = np.random.random((1, 128)).tolist()
-results = client.search(collection_name=collection_name, query_vector=query_vector, top=5)
-
-# Print results
-for result in results:
-    print(result.id, result.score)
+vector_store = QdrantVectorStore(
+    client=client,
+    collection_name="demo_collection",
+    embedding=embeddings
+)
 ```
 
-### **6. Resources**
+## CRUD Operations
 
-- **Qdrant Documentation**: [Qdrant Documentation](https://qdrant.tech/documentation/)
-- **Qdrant GitHub**: [Qdrant GitHub Repository](https://github.com/qdrant/qdrant)
-- **Qdrant Community**: [Qdrant Forum](https://community.qdrant.tech/)
+### Add Documents
 
-Qdrant is a versatile and powerful tool for managing and searching vector data, making it suitable for a range of applications in AI and machine learning. If you have specific questions or need more detailed guidance, feel free to ask!
+To add documents to your vector store:
+
+```python
+from uuid import uuid4
+from langchain_core.documents import Document
+
+document_1 = Document(page_content="Sample content.", metadata={"source": "example"})
+
+documents = [document_1, ...]  # Add your documents here
+uuids = [str(uuid4()) for _ in range(len(documents))]
+
+vector_store.add_documents(documents=documents, ids=uuids)
+```
+
+### Delete Documents
+
+To delete documents from your vector store:
+
+```python
+vector_store.delete(ids=[uuids[-1]])
+```
+
+## Search Types
+
+### Dense Vector Search
+
+To perform a dense vector search:
+
+```python
+results = vector_store.similarity_search("query text", k=2)
+for res in results:
+    print(f"* {res.page_content} [{res.metadata}]")
+```
+
+### Sparse Vector Search
+
+To perform a sparse vector search:
+
+1. **Install the FastEmbed package:**
+
+   ```sh
+   pip install fastembed
+   ```
+
+2. **Set up the sparse embeddings and perform the search:**
+
+   ```python
+   from langchain_qdrant import FastEmbedSparse, RetrievalMode
+
+   sparse_embeddings = FastEmbedSparse(model_name="Qdrant/BM25")
+
+   vector_store = QdrantVectorStore.from_documents(
+       docs,
+       sparse_embedding=sparse_embeddings,
+       location=":memory:",
+       collection_name="my_documents",
+       retrieval_mode=RetrievalMode.SPARSE
+   )
+
+   query = "query text"
+   results = vector_store.similarity_search(query)
+   for res in results:
+       print(f"* {res.page_content} [{res.metadata}]")
+   ```
+
+### Hybrid Vector Search
+
+To perform a hybrid vector search:
+
+```python
+from langchain_qdrant import FastEmbedSparse, RetrievalMode
+
+sparse_embeddings = FastEmbedSparse(model_name="Qdrant/BM25")
+
+vector_store = QdrantVectorStore.from_documents(
+    docs,
+    embedding=embeddings,
+    sparse_embedding=sparse_embeddings,
+    location=":memory:",
+    collection_name="my_documents",
+    retrieval_mode=RetrievalMode.HYBRID
+)
+
+query = "query text"
+results = vector_store.similarity_search(query)
+for res in results:
+    print(f"* {res.page_content} [{res.metadata}]")
+```
+
+### Metadata Filtering
+
+To perform a search with metadata filtering:
+
+```python
+from qdrant_client.http import models
+
+results = vector_store.similarity_search(
+    query="query text",
+    k=2,
+    filter=models.Filter(
+        should=[
+            models.FieldCondition(
+                key="metadata_key",
+                match=models.MatchValue(value="desired_value")
+            ),
+        ]
+    )
+)
+for res in results:
+    print(f"* {res.page_content} [{res.metadata}]")
+```
+
+### Search with Scores
+
+To perform a search and receive similarity scores:
+
+```python
+results = vector_store.similarity_search_with_score(
+    query="query text",
+    k=1
+)
+for doc, score in results:
+    print(f"* [SIM={score:3f}] {doc.page_content} [{doc.metadata}]")
+```
+
+## Additional Resources
+
+- **[Qdrant Documentation](https://qdrant.tech/documentation/)**
+- **[LangChain Documentation](https://langchain.com/docs/)**
+- **[FastEmbed Documentation](https://fastembed.readthedocs.io/en/latest/)**
+- **[Docker Hub: Qdrant](https://hub.docker.com/r/qdrant/qdrant)**
+
+This guide covers the essentials of setting up and using Qdrant with various configurations and search methods. For further details, please refer to the documentation of Qdrant and related libraries.
+```
+
+### **Explanation**
+
+1. **Setup**: Instructions for setting up Qdrant using Docker, local in-memory, Qdrant Cloud, and on-disk storage.
+
+2. **CRUD Operations**: How to add and delete documents in the Qdrant vector store.
+
+3. **Search Types**: Demonstrates different search types (dense, sparse, hybrid) and includes metadata filtering and searching with scores.
+
+4. **Additional Resources**: Links to further documentation and resources.
+
+Feel free to adapt or expand on these sections as needed!
