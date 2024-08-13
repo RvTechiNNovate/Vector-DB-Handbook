@@ -8,10 +8,10 @@ This repository is organized into directories, each containing setup instruction
 
 ## Directory Structure
 
-- **[Milvus](Milvus/)**: Instructions for setting up and using Milvus, an open-source vector database.
-- **[FAISS](Faiss_db/)**: Setup guide for FAISS, a library for efficient similarity search.
+-✅ **[FAISS](Faiss_db/)**: Setup guide for FAISS, a library for efficient similarity search.
+-✅ **[Milvus](Milvus/)**: Instructions for setting up and using Milvus, an open-source vector database.
+-✅ **[Chroma](Chromadb/)**: Instructions for ChromaDB, a vector database designed for AI and machine learning applications.
 - **[Weaviate](weaviate/)**: Setup instructions for Weaviate, an open-source vector search engine.
-- **[Chroma](Chromadb/)**: Instructions for ChromaDB, a vector database designed for AI and machine learning applications.
 - **[Qdrant](Qdrant/)**: Setup guide for Qdrant, an open-source vector similarity search engine.
 - **[Pinecone](Pinecone/)**: Instructions for Pinecone, a fully managed vector database service.
 - **[Redis Vector Search](Redis/)**: Guide for using Redis with vector search capabilities.
